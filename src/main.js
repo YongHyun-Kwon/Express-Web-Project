@@ -3,32 +3,55 @@
 /* eslint-disable no-console */
 
 const express = require('express')
-const fs = require('fs')
+const bodyParser = require('body-parser')
+
+const userRouter = express.Router()
 
 const app = express()
+app.use(bodyParser.json())
 
 const PORT = 5000
 
-app.use('/', async (req, res, next) => {
-  console.log('Middelware 1')
+userRouter.get('/', (req, res) => {
+  res.send('User list')
+})
 
-  const fileContent = await fs.promises.readFile('.gitignore')
+const USERS = {
+  15: {
+    nickname: 'foo',
+  },
+}
 
-  const requestedAt = new Date()
+userRouter.param('id', (req, res, next, value) => {
+  console.log('id Parameter', value)
   // @ts-ignore
-  req.requestedAt = requestedAt
-  // @ts-ignore
-  req.fileContent = fileContent
+  req.user = USERS[value]
   next()
 })
 
-/* 수많은 middleware들 있다고 가정 */
-
-app.use((req, res) => {
-  console.log('Middelware 2')
+userRouter.get('/:id', (req, res) => {
+  console.log('userRouter get ID')
   // @ts-ignore
-  res.send(`Requested at ${req.requestedAt}, ${req.fileContent}`)
+  res.send(req.user)
 })
+
+userRouter.post('/', (req, res) => {
+  // Register user
+  res.send('User registered')
+})
+
+userRouter.post('/:id/nickname', (req, res) => {
+  // req.body: {"nickname": bar}
+  // @ts-ignore
+  const { user } = req
+  const { nickname } = req.body
+
+  user.nickname = nickname
+
+  res.send(`User nickname update: ${nickname}`)
+})
+
+app.use('/users', userRouter)
 
 app.listen(PORT, () => {
   console.log(`The Express server is listening at port: ${PORT}`)
