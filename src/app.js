@@ -13,6 +13,7 @@ const userRouter = require('./routers/user')
 
 app.use('/users', userRouter)
 app.use('/public', express.static('src/public'))
+app.use('/uploads', express.static('uploads'))
 
 app.use((err, req, res, next) => {
   res.statusCode = err.statusCode || 500
