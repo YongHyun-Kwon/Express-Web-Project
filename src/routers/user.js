@@ -1,6 +1,5 @@
 // @ts-check
 
-const { throws } = require('assert')
 const express = require('express')
 
 const router = express.Router()
