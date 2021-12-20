@@ -3,12 +3,15 @@
 /* eslint-disable no-console */
 
 const express = require('express')
-const bodyParser = require('body-parser')
 
 const userRouter = express.Router()
 
 const app = express()
-app.use(bodyParser.json())
+app.use(express.json())
+app.use('/public', express.static('src/public'))
+// pug로 템플릿 작성
+app.set('views', 'src/views')
+app.set('view engine', 'pug')
 
 const PORT = 5000
 
@@ -20,19 +23,30 @@ const USERS = {
   15: {
     nickname: 'foo',
   },
+  16: {
+    nickname: 'bar',
+  },
 }
 
 userRouter.param('id', (req, res, next, value) => {
-  console.log('id Parameter', value)
   // @ts-ignore
   req.user = USERS[value]
   next()
 })
 
 userRouter.get('/:id', (req, res) => {
-  console.log('userRouter get ID')
-  // @ts-ignore
-  res.send(req.user)
+  const resMimeType = req.accepts(['json', 'html'])
+
+  if (resMimeType === 'json') {
+    console.log('userRouter get ID')
+    // @ts-ignore
+    res.send(req.user)
+  } else if (resMimeType === 'html') {
+    res.render('user-profile', {
+      // @ts-ignore
+      nickname: req.user.nickname,
+    })
+  }
 })
 
 userRouter.post('/', (req, res) => {
@@ -52,6 +66,12 @@ userRouter.post('/:id/nickname', (req, res) => {
 })
 
 app.use('/users', userRouter)
+
+app.get('/', (req, res) => {
+  res.render('index', {
+    message: 'Hello Pug!!!',
+  })
+})
 
 app.listen(PORT, () => {
   console.log(`The Express server is listening at port: ${PORT}`)
